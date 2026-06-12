@@ -279,8 +279,7 @@
             ammo: 30,
             score: 0,
             wantedLevel: 0,
-            invincibleTimer: 0,
-            healthRegenTimer: 0
+            invincibleTimer: 0
         };
         
         // Explosion effects
@@ -353,7 +352,6 @@
             if(player.invincibleTimer > 0) return;
             player.health -= amount;
             player.invincibleTimer = 0.4;
-            player.healthRegenTimer = 2.5;
             if(player.health <= 0) {
                 player.health = 0;
                 if(gamePhase === 'active') {
@@ -477,7 +475,6 @@
             if(gamePhase !== 'active') return;
             let dt = Math.min(deltaSec, 0.033);
             if(player.invincibleTimer > 0) player.invincibleTimer -= dt;
-            if(player.healthRegenTimer > 0) player.healthRegenTimer -= dt;
             
             // ----- PLAYER CONTROLS: A = turn RIGHT (clockwise), D = turn LEFT (counter-clockwise) -----
             let acc = 0;
@@ -508,11 +505,6 @@
             for(let b of buildings) resolveCircleRect(player.x, player.y, player.radius, b, player);
             
             if(shootCooldown > 0) shootCooldown -= dt;
-
-            if(player.healthRegenTimer <= 0)
-            {
-                player.health = clamp(player.health + deltaSec * 18, 0, player.maxHealth);
-            }
             
             // Police AI + ramming explosion
             for(let i=0; i<policeCars.length; i++) {
