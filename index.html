@@ -289,13 +289,11 @@
         let policeCars = [];
         let pedestrians = [];
         let bullets = [];
-        let pickups = [];
         let buildings = [];
         
         // Timers
         let shootCooldown = 0;
         let policeSpawnTimer = 0;
-        let pickupSpawnTimer = 0;
         let wantedDecayTimer = 0;
         let deathExplosionTimer = 0;
         
@@ -350,7 +348,7 @@
         function damagePlayer(amount) {
             if(gamePhase !== 'active') return;
             if(player.invincibleTimer > 0) return;
-            player.health -= amount;
+            player.health = clamp(player.health - amount, 0, player.maxHealth);
             player.invincibleTimer = 0.4;
             if(player.health <= 0) {
                 player.health = 0;
@@ -404,17 +402,6 @@
                 vx: (Math.random() - 0.5)*50, vy: (Math.random() - 0.5)*50,
                 color: "#8b5a2b"
             });
-        }
-        
-        function spawnPickup() {
-            let type = Math.random() < 0.6 ? "health" : "ammo";
-            let radius = 12;
-            let x = clamp(player.x + (Math.random() - 0.5) * 800, 60, WORLD_WIDTH-60);
-            let y = clamp(player.y + (Math.random() - 0.5) * 800, 60, WORLD_HEIGHT-60);
-            for(let b of buildings) {
-                if(circleRectCollision(x, y, radius, b)) return;
-            }
-            pickups.push({ x: x, y: y, radius: 12, type: type });
         }
         
         function generateBuildings() {
@@ -589,7 +576,7 @@
                 if(Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
                     pedestrians.splice(i,1);
                     addScore(50, true);
-                    damagePlayer(-18);
+                    damagePlayer(-6);
                     i--;
                 }
             }
@@ -615,28 +602,15 @@
                 }
             }
             
-            // Pickups
-            for(let i=0; i<pickups.length; i++) {
-                let pUp = pickups[i];
-                if(Math.hypot(player.x - pUp.x, player.y - pUp.y) < player.radius + pUp.radius) {
-                    if(pUp.type === "health") player.health = Math.min(player.maxHealth, player.health + 40);
-                    else if(pUp.type === "ammo") player.ammo += 18;
-                    pickups.splice(i,1);
-                    updateUI();
-                    i--;
-                }
-            }
-            
             // Spawning
             policeSpawnTimer += dt;
             let wantedSpawnDelay = Math.max(1.2, 3.6 - player.wantedLevel * 0.5);
-            if(policeSpawnTimer > wantedSpawnDelay && policeCars.length < 5 + player.wantedLevel) {
+            if(policeSpawnTimer > wantedSpawnDelay && policeCars.length < 50 + player.wantedLevel) {
                 policeSpawnTimer = 0;
                 let spawnCount = player.wantedLevel >= 3 ? 2 : 1;
                 for(let s=0; s<spawnCount; s++) spawnPoliceAt();
             }
-            pickupSpawnTimer += dt;
-            if(pickupSpawnTimer > 5.2) { pickupSpawnTimer = 0; spawnPickup(); }
+            
             if(pedestrians.length < 1000 + player.wantedLevel && Math.random()<0.2) spawnPedestrian();
             
             wantedDecayTimer += dt;
@@ -692,19 +666,10 @@
             }
             ctx.setLineDash([]);
             for(let b of buildings) {
-                ctx.fillStyle = "#2f2e41";
+                ctx.fillStyle = "#ffffff";
                 ctx.fillRect(b.x, b.y, b.w, b.h);
-                ctx.fillStyle = "#4a3f2c";
+                ctx.fillStyle = "#00ffff";
                 ctx.fillRect(b.x+5, b.y+5, b.w-10, 8);
-            }
-            for(let p of pickups) {
-                ctx.fillStyle = p.type === "health" ? "#ff6b6b" : "#f4c542";
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 10, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = "white";
-                ctx.font = "bold 14px monospace";
-                ctx.fillText(p.type==="health"?"💊":"🔫", p.x-6, p.y+6);
             }
             for(let ped of pedestrians) {
                 ctx.fillStyle = "#bc9a6c";
@@ -832,11 +797,9 @@
             policeCars = [];
             pedestrians = [];
             bullets = [];
-            pickups = [];
             explosions = [];
             shootCooldown = 0;
             policeSpawnTimer = 0;
-            pickupSpawnTimer = 0.5;
             wantedDecayTimer = 0;
             for(let i=0;i<2;i++) spawnPoliceAt(player.x+100+i*90, player.y+70);
             for(let i=0;i<5;i++) spawnPedestrian();
