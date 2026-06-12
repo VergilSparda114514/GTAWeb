@@ -279,7 +279,8 @@
             ammo: 30,
             score: 0,
             wantedLevel: 0,
-            invincibleTimer: 0
+            invincibleTimer: 0,
+            healthRegenTimer: 0
         };
         
         // Explosion effects
@@ -352,6 +353,7 @@
             if(player.invincibleTimer > 0) return;
             player.health -= amount;
             player.invincibleTimer = 0.4;
+            player.healthRegenTimer = 2.5;
             if(player.health <= 0) {
                 player.health = 0;
                 if(gamePhase === 'active') {
@@ -475,6 +477,7 @@
             if(gamePhase !== 'active') return;
             let dt = Math.min(deltaSec, 0.033);
             if(player.invincibleTimer > 0) player.invincibleTimer -= dt;
+            if(player.healthRegenTimer > 0) player.healthRegenTimer -= dt;
             
             // ----- PLAYER CONTROLS: A = turn RIGHT (clockwise), D = turn LEFT (counter-clockwise) -----
             let acc = 0;
@@ -505,6 +508,11 @@
             for(let b of buildings) resolveCircleRect(player.x, player.y, player.radius, b, player);
             
             if(shootCooldown > 0) shootCooldown -= dt;
+
+            if(player.healthRegenTimer <= 0)
+            {
+                player.health = clamp(player.health + deltaSec * 18, 0, player.maxHealth);
+            }
             
             // Police AI + ramming explosion
             for(let i=0; i<policeCars.length; i++) {
@@ -589,7 +597,7 @@
                 if(Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
                     pedestrians.splice(i,1);
                     addScore(50, true);
-                    damagePlayer(6);
+                    damagePlayer(-18);
                     i--;
                 }
             }
@@ -637,7 +645,7 @@
             }
             pickupSpawnTimer += dt;
             if(pickupSpawnTimer > 5.2) { pickupSpawnTimer = 0; spawnPickup(); }
-            if(pedestrians.length < 10 + player.wantedLevel && Math.random()<0.02) spawnPedestrian();
+            if(pedestrians.length < 100 + player.wantedLevel && Math.random()<0.02) spawnPedestrian();
             
             wantedDecayTimer += dt;
             if(wantedDecayTimer > 8.0 && player.wantedLevel > 0) {
@@ -806,7 +814,7 @@
                 vx: dx * 650, vy: dy * 650,
                 radius: 6, owner: "player", damage: 45, life: 2.2
             });
-            player.ammo--;
+            // player.ammo--;
             shootCooldown = 0.24;
             updateUI();
         }
