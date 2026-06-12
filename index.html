@@ -645,7 +645,7 @@
             }
             pickupSpawnTimer += dt;
             if(pickupSpawnTimer > 5.2) { pickupSpawnTimer = 0; spawnPickup(); }
-            if(pedestrians.length < 100 + player.wantedLevel && Math.random()<0.02) spawnPedestrian();
+            if(pedestrians.length < 1000 + player.wantedLevel && Math.random()<0.02) spawnPedestrian();
             
             wantedDecayTimer += dt;
             if(wantedDecayTimer > 8.0 && player.wantedLevel > 0) {
