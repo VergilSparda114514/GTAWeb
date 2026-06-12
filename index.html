@@ -101,11 +101,6 @@
             transition: width 0.1s;
         }
 
-        .ammo {
-            background: #1e2a2a;
-            color: #ffaa44;
-        }
-
         .controls-tip {
             position: absolute;
             bottom: 16px;
@@ -226,9 +221,6 @@
             ❤️ HEALTH
             <div class="health-bar"><div class="health-fill" id="healthFill" style="width: 100%"></div></div>
         </div>
-        <div class="panel ammo">
-            🔫 AMMO: <span id="ammoCount">30</span>
-        </div>
     </div>
     <div class="controls-tip">
         🚗 W=FORWARD | S=BACK | A=TURN RIGHT | D=TURN LEFT | 🖱️ CLICK TO SHOOT | 💥 RAM = EXPLOSION
@@ -276,7 +268,6 @@
             radius: 22,
             health: 200,
             maxHealth: 200,
-            ammo: 30,
             score: 0,
             wantedLevel: 0,
             invincibleTimer: 0
@@ -320,7 +311,6 @@
         
         function updateUI() {
             document.getElementById('scoreValue').innerText = player.score;
-            document.getElementById('ammoCount').innerText = player.ammo;
             const healthPercent = (player.health / player.maxHealth) * 100;
             document.getElementById('healthFill').style.width = Math.max(0, healthPercent) + '%';
             updateWantedUI();
@@ -668,7 +658,7 @@
             for(let b of buildings) {
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(b.x, b.y, b.w, b.h);
-                ctx.fillStyle = "#00ffff";
+                ctx.fillStyle = "#0080ff";
                 ctx.fillRect(b.x+5, b.y+5, b.w-10, 8);
             }
             for(let ped of pedestrians) {
@@ -758,7 +748,6 @@
         
         function handleShoot(e) {
             if(gamePhase !== 'active') return;
-            if(player.ammo <= 0) return;
             if(shootCooldown > 0) return;
             const worldPos = getMouseWorldPos(e);
             let dx = worldPos.x - player.x;
@@ -771,7 +760,6 @@
                 vx: dx * 650, vy: dy * 650,
                 radius: 6, owner: "player", damage: 45, life: 2.2
             });
-            // player.ammo--;
             shootCooldown = 0.24;
             updateUI();
         }
@@ -790,9 +778,20 @@
         
         function resetGameWorld() {
             player = {
-                x: WORLD_WIDTH/2, y: WORLD_HEIGHT/2, angle: 0, speed: 0,
-                maxSpeed: 320, accel: 520, turnSpeed: 2.9, drag: 0.98, radius: 22,
-                health: 200, maxHealth: 200, ammo: 30, score: 0, wantedLevel: 0, invincibleTimer: 0
+                x: WORLD_WIDTH/2,
+                y: WORLD_HEIGHT/2,
+                angle: 0,
+                speed: 0,
+                maxSpeed: 320,
+                accel: 520,
+                turnSpeed: 2.9,
+                drag: 0.98,
+                radius: 22,
+                health: 200,
+                maxHealth: 200,
+                score: 0,
+                wantedLevel: 0,
+                invincibleTimer: 0
             };
             policeCars = [];
             pedestrians = [];
