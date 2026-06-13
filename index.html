@@ -233,7 +233,7 @@
     <div id="countdownOverlay" class="countdown-overlay" style="display: none;">3</div>
     <button class="restart-btn" id="restartGameBtn">🔁 RESTART MISSION</button>
 </div>
-
+<script src="https://unpkg.com/web-audio-daw"></script>
 <script>
     (function(){
         // -------------------- CANVAS --------------------
@@ -276,6 +276,10 @@
         // Effects
         let explosions = [];
         let bloods = [];
+
+        // Sound Effects
+
+        const shoot = new Wad({ source: 'shoot.mp3' });
         
         // Entities
         let policeCars = [];
@@ -371,18 +375,27 @@
                 let offsetY = (Math.random() - 0.5) * 380;
                 x = player.x + offsetX;
                 y = player.y + offsetY;
-                x = clamp(x, 80, WORLD_WIDTH-80);
-                y = clamp(y, 80, WORLD_HEIGHT-80);
+
+                x = clamp(x, 80, WORLD_WIDTH - 80);
+                y = clamp(y, 80, WORLD_HEIGHT - 80);
             }
-            let safe = true;
-            for(let b of buildings) {
-                if(circleRectCollision(x, y, radius, b)) { safe = false; break; }
+
+            if (buildings.some((b) => circleRectCollision(x, y, radius, b))) {
+                return;
             }
-            if(!safe) return;
+
             policeCars.push({
-                x: x, y: y, angle: angle, speed: 0, radius: radius,
-                health: 60, shootCooldown: 0, maxSpeed: 210, accel: 380,
-                color: "#2c6e9e", id: Math.random()
+                x: x,
+                y: y,
+                angle: angle,
+                speed: 0,
+                radius: radius,
+                health: 60,
+                shootCooldown: 0,
+                maxSpeed: 210,
+                accel: 380,
+                color: "#2c6e9e",
+                id: Math.random()
             });
         }
         
@@ -726,13 +739,13 @@
             
             for(let e of explosions) {
                 let alpha = Math.min(1, e.timer * 2);
-                let radius = 16 + (0.5 - e.timer) * 28;
+                let radius = 32 + (0.5 - e.timer) * 56;
                 ctx.beginPath();
-                ctx.arc(e.x, e.y, radius, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(255, 80, 40, ${alpha*0.9})`;
+                ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 80, 40, ${alpha * 0.9})`;
                 ctx.fill();
                 ctx.beginPath();
-                ctx.arc(e.x, e.y, radius*0.6, 0, Math.PI*2);
+                ctx.arc(e.x, e.y, radius * 0.6, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(255, 200, 30, ${alpha})`;
                 ctx.fill();
             }
@@ -793,6 +806,7 @@
                 vx: dx * 650, vy: dy * 650,
                 radius: 6, owner: "player", damage: 45, life: 2.2
             });
+            shoot.play();
             shootCooldown = 0.1;
             updateUI();
         }
