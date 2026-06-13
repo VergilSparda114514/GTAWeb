@@ -273,8 +273,9 @@
             invincibleTimer: 0
         };
         
-        // Explosion effects
+        // Effects
         let explosions = [];
+        let bloods = [];
         
         // Entities
         let policeCars = [];
@@ -283,6 +284,7 @@
         let buildings = [];
         
         // Timers
+        let isShooting = false;
         let shootCooldown = 0;
         let policeSpawnTimer = 0;
         let wantedDecayTimer = 0;
@@ -296,7 +298,7 @@
             w: false, s: false, a: false, d: false
         };
         
-        let mouseWorldX = player.x, mouseWorldY = player.y;
+        let mouseX = player.x, mouseY = player.y;
         
         // ---------- HELPERS ----------
         function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
@@ -326,13 +328,17 @@
         }
         
         function addExplosion(x, y) {
-            explosions.push({ x: x, y: y, timer: 0.45 });
+            explosions.push({ x: x, y: y, timer: 0.5 });
+        }
+
+        function addBlood(x, y) {
+            bloods.push({ x: x, y: y, timer: 0.25 });
         }
         
         function destroyPoliceCar(cop, index) {
             addExplosion(cop.x, cop.y);
             policeCars.splice(index, 1);
-            addScore(200, true);
+            addScore(20, true);
         }
         
         function damagePlayer(amount) {
@@ -482,6 +488,7 @@
             for(let b of buildings) resolveCircleRect(player.x, player.y, player.radius, b, player);
             
             if(shootCooldown > 0) shootCooldown -= dt;
+            handleShoot();
             
             // Police AI + ramming explosion
             for(let i=0; i<policeCars.length; i++) {
@@ -546,8 +553,9 @@
                     for(let k=0; k<pedestrians.length; k++) {
                         let ped = pedestrians[k];
                         if(Math.hypot(b.x - ped.x, b.y - ped.y) < b.radius + ped.radius) {
+                            addBlood(ped.x, ped.y);
                             pedestrians.splice(k,1);
-                            addScore(80, true);
+                            addScore(10, true);
                             bullets.splice(i,1);
                             i--; break;
                         }
@@ -564,8 +572,9 @@
                 ped.y = clamp(ped.y, 12, WORLD_HEIGHT-12);
                 for(let b of buildings) resolveCircleRect(ped.x, ped.y, ped.radius, b, ped);
                 if(Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
+                    addBlood(ped.x, ped.y);
                     pedestrians.splice(i,1);
-                    addScore(50, true);
+                    addScore(5, true);
                     damagePlayer(-6);
                     i--;
                 }
@@ -616,11 +625,21 @@
             cameraY = clamp(cameraY, 0, WORLD_HEIGHT - canvas.height);
         }
         
-        function updateExplosions(deltaSec) {
-            for(let i=0; i<explosions.length; i++) {
+        function updateEffects(deltaSec) {
+            for(let i = 0; i < explosions.length; i++) {
                 explosions[i].timer -= deltaSec;
+
                 if(explosions[i].timer <= 0) {
                     explosions.splice(i,1);
+                    i--;
+                }
+            }
+
+            for(let i = 0; i < bloods.length; i++) {
+                bloods[i].timer -= deltaSec;
+
+                if(bloods[i].timer <= 0) {
+                    bloods.splice(i, 1);
                     i--;
                 }
             }
@@ -707,7 +726,7 @@
             
             for(let e of explosions) {
                 let alpha = Math.min(1, e.timer * 2);
-                let radius = 16 + (0.45 - e.timer) * 28;
+                let radius = 16 + (0.5 - e.timer) * 28;
                 ctx.beginPath();
                 ctx.arc(e.x, e.y, radius, 0, Math.PI*2);
                 ctx.fillStyle = `rgba(255, 80, 40, ${alpha*0.9})`;
@@ -718,10 +737,23 @@
                 ctx.fill();
             }
             
-            for(let b of bullets) {
-                ctx.fillStyle = b.owner==="player" ? "#ffcc44" : "#ff4444";
+            for(let b of bloods) {
+                let alpha = Math.min(1, b.timer * 2);
+                let radius = 16 + (0.25 - b.timer) * 28;
                 ctx.beginPath();
-                ctx.arc(b.x, b.y, 5, 0, Math.PI*2);
+                ctx.arc(b.x, b.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 0, 0, ${alpha * 0.9})`;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, radius * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(128, 0, 0, ${alpha})`;
+                ctx.fill();
+            }
+            
+            for(let b of bullets) {
+                ctx.fillStyle = b.owner === "player" ? "#ffcc44" : "#ff4444";
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.restore();
@@ -737,19 +769,20 @@
         }
         
         // ----- SHOOTING -----
-        function getMouseWorldPos(e) {
+        function getMouseWorldPos() {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            let mouseCanvasX = (e.clientX - rect.left) * scaleX;
-            let mouseCanvasY = (e.clientY - rect.top) * scaleY;
+            let mouseCanvasX = (mouseX - rect.left) * scaleX;
+            let mouseCanvasY = (mouseY - rect.top) * scaleY;
             return { x: mouseCanvasX + cameraX, y: mouseCanvasY + cameraY };
         }
         
-        function handleShoot(e) {
+        function handleShoot() {
             if(gamePhase !== 'active') return;
+            if(!isShooting) return;
             if(shootCooldown > 0) return;
-            const worldPos = getMouseWorldPos(e);
+            const worldPos = getMouseWorldPos();
             let dx = worldPos.x - player.x;
             let dy = worldPos.y - player.y;
             let len = Math.hypot(dx,dy);
@@ -760,7 +793,7 @@
                 vx: dx * 650, vy: dy * 650,
                 radius: 6, owner: "player", damage: 45, life: 2.2
             });
-            shootCooldown = 0.24;
+            shootCooldown = 0.1;
             updateUI();
         }
         
@@ -774,6 +807,7 @@
             startScreenDiv.style.display = 'none';
             gameRunning = false;
             explosions = [];
+            bloods = [];
         }
         
         function resetGameWorld() {
@@ -797,6 +831,7 @@
             pedestrians = [];
             bullets = [];
             explosions = [];
+            bloods = [];
             shootCooldown = 0;
             policeSpawnTimer = 0;
             wantedDecayTimer = 0;
@@ -847,10 +882,11 @@
                 if(keys.hasOwnProperty(k)) keys[k] = false;
             });
             canvas.addEventListener('mousemove', (e) => {
-                let w = getMouseWorldPos(e);
-                mouseWorldX = w.x; mouseWorldY = w.y;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
             });
-            canvas.addEventListener('click', (e) => { handleShoot(e); });
+            canvas.addEventListener('mousedown', (e) => { isShooting = true; });
+            canvas.addEventListener('mouseup', (e) => { isShooting = false; });
             document.getElementById('mainStartBtn').addEventListener('click', () => { startCountdown(); });
             document.getElementById('restartGameBtn').addEventListener('click', () => {
                 if(gamePhase !== 'countdown') startCountdown();
@@ -865,15 +901,15 @@
             if(delta > 0.001) {
                 if(gamePhase === 'active') {
                     updateGame(delta);
-                    updateExplosions(delta);
+                    updateEffects(delta);
                 } else if(gamePhase === 'countdown') {
                     updateCountdown(delta);
-                    updateExplosions(delta);
+                    updateEffects(delta);
                 } else if(gamePhase === 'exploding') {
                     updateDeathExplosion(delta);
-                    updateExplosions(delta);
+                    updateEffects(delta);
                 } else {
-                    updateExplosions(delta);
+                    updateEffects(delta);
                 }
                 drawWorld();
             }
