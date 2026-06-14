@@ -280,6 +280,8 @@
         // Sound Effects
 
         const shoot = new Wad({ source: 'shoot.mp3' });
+        const policeShoot = new Wad({ source: 'policeShoot.mp3' });
+        const explode = new Wad({ source: 'explode.mp3' });
         
         // Entities
         let policeCars = [];
@@ -333,6 +335,7 @@
         
         function addExplosion(x, y) {
             explosions.push({ x: x, y: y, timer: 0.5 });
+            explode.play();
         }
 
         function addBlood(x, y) {
@@ -504,19 +507,19 @@
             handleShoot();
             
             // Police AI + ramming explosion
-            for(let i=0; i<policeCars.length; i++) {
+            for (let i = 0; i < policeCars.length; i++) {
                 const p = policeCars[i];
                 let dx = player.x - p.x;
                 let dy = player.y - p.y;
                 let distToPlayer = Math.hypot(dx,dy);
                 
                 // RAMMING: explode police and damage player
-                if(distToPlayer < player.radius + p.radius) {
+                if (distToPlayer < player.radius + p.radius) {
                     destroyPoliceCar(p, i);
                     damagePlayer(18);
                     let anglePush = Math.atan2(player.y - p.y, player.x - p.x);
-                    player.x += Math.cos(anglePush)*24;
-                    player.y += Math.sin(anglePush)*24;
+                    player.x += Math.cos(anglePush) * 24;
+                    player.y += Math.sin(anglePush) * 24;
                     i--;
                     continue;
                 }
@@ -547,6 +550,7 @@
                             x: p.x + dirX*14, y: p.y + dirY*14, vx: dirX * 420, vy: dirY * 420,
                             radius: 5, owner: "police", damage: 12, life: 2.0
                         });
+                        shoot.play();
                     }
                 } else if(p.shootCooldown > 0) p.shootCooldown -= dt;
             }
