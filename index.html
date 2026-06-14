@@ -282,6 +282,7 @@
         const shoot = new Wad({ source: 'shoot.mp3' });
         const policeShoot = new Wad({ source: 'policeShoot.mp3' });
         const explode = new Wad({ source: 'explode.mp3' });
+        const bgm = new Wad({ source: 'bgm.mp3' });
         
         // Entities
         let policeCars = [];
@@ -550,7 +551,7 @@
                             x: p.x + dirX*14, y: p.y + dirY*14, vx: dirX * 420, vy: dirY * 420,
                             radius: 5, owner: "police", damage: 12, life: 2.0
                         });
-                        shoot.play();
+                        policeShoot.play();
                     }
                 } else if(p.shootCooldown > 0) p.shootCooldown -= dt;
             }
@@ -942,6 +943,7 @@
         countdownDiv.style.display = 'none';
         lastFrameTime = performance.now() / 1000;
         gameLoop();
+        bgm.play();
     })();
 </script>
 </body>
