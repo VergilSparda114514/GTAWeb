@@ -632,7 +632,7 @@
                 }
                 if(hitBuilding) { bullets.splice(i,1); i--; }
                 else if(b.owner === "police" && Math.hypot(b.x - player.x, b.y - player.y) < b.radius + player.radius) {
-                    damagePlayer(b.damage);
+                    damagePlayer(b.damage + player.wantedLevel);
                     bullets.splice(i,1); i--;
                 }
             }
