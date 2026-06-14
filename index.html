@@ -346,6 +346,15 @@
                     i--;
                 }
             }
+
+            for (let i = 0; i < policeCars.length; i++) {
+                const car = policeCars[i];
+
+                if (Math.hypot(car.x - x, car.y - y) < 88 + car.radius) {
+                    destroyPoliceCar(car, i);
+                    i--;
+                }
+            }
         }
 
         function addBlood(x, y) {
@@ -359,8 +368,8 @@
         }
         
         function destroyPoliceCar(cop, index) {
-            addExplosion(cop.x, cop.y);
             policeCars.splice(index, 1);
+            addExplosion(cop.x, cop.y);
             addScore(20, true);
         }
         
