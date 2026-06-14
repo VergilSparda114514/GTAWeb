@@ -337,10 +337,25 @@
         function addExplosion(x, y) {
             explosions.push({ x: x, y: y, timer: 0.5 });
             explode.play();
+
+            for (let i = 0; i < pedestrians.length; i++) {
+                const ped = pedestrians[i];
+
+                if (Math.hypot(ped.x - x, ped.y - y) < 88 + ped.radius) {
+                    destroyPedestrian(ped, i);
+                    i--;
+                }
+            }
         }
 
         function addBlood(x, y) {
             bloods.push({ x: x, y: y, timer: 0.25 });
+        }
+
+        function destroyPedestrian(ped, index) {
+            addBlood(ped.x, ped.y);
+            pedestrians.splice(index, 1);
+            addScore(5);
         }
         
         function destroyPoliceCar(cop, index) {
@@ -557,39 +572,42 @@
             }
             
             // Bullets vs police
-            for(let i=0; i<bullets.length; i++) {
+            for(let i = 0; i < bullets.length; i++) {
                 let b = bullets[i];
-                if(b.owner === "player") {
-                    for(let j=0; j<policeCars.length; j++) {
+
+                if (b.owner === "player") {
+                    for (let j = 0; j < policeCars.length; j++) {
                         let cop = policeCars[j];
                         if(Math.hypot(b.x - cop.x, b.y - cop.y) < b.radius + cop.radius) {
                             destroyPoliceCar(cop, j);
                             bullets.splice(i,1);
-                            i--; break;
+
+                            break;
                         }
                     }
-                    for(let k=0; k<pedestrians.length; k++) {
+
+                    for(let k = 0; k < pedestrians.length; k++) {
                         let ped = pedestrians[k];
-                        if(Math.hypot(b.x - ped.x, b.y - ped.y) < b.radius + ped.radius) {
-                            addBlood(ped.x, ped.y);
-                            pedestrians.splice(k,1);
-                            addScore(10, true);
+
+                        if (Math.hypot(b.x - ped.x, b.y - ped.y) < b.radius + ped.radius) {
+                            destroyPedestrian(ped, k);
                             bullets.splice(i,1);
-                            i--; break;
+
+                            break;
                         }
                     }
                 }
             }
             
             // Pedestrians
-            for(let i=0; i<pedestrians.length; i++) {
+            for (let i = 0; i < pedestrians.length; i++) {
                 let ped = pedestrians[i];
                 ped.x += ped.vx * dt;
                 ped.y += ped.vy * dt;
                 ped.x = clamp(ped.x, 12, WORLD_WIDTH-12);
                 ped.y = clamp(ped.y, 12, WORLD_HEIGHT-12);
-                for(let b of buildings) resolveCircleRect(ped.x, ped.y, ped.radius, b, ped);
-                if(Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
+                for (let b of buildings) resolveCircleRect(ped.x, ped.y, ped.radius, b, ped);
+                if (Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
                     addBlood(ped.x, ped.y);
                     pedestrians.splice(i,1);
                     addScore(5, true);
@@ -757,7 +775,7 @@
             
             for(let b of bloods) {
                 let alpha = Math.min(1, b.timer * 2);
-                let radius = 16 + (0.25 - b.timer) * 28;
+                let radius = 16 + (0.25 - b.timer) / 0.25 * 28;
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, radius, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(255, 0, 0, ${alpha * 0.9})`;
