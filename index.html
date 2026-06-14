@@ -827,6 +827,9 @@
             gameRunning = false;
             explosions = [];
             bloods = [];
+
+            bgm.stop();
+            bgm.play();
         }
         
         function resetGameWorld() {
@@ -943,7 +946,6 @@
         countdownDiv.style.display = 'none';
         lastFrameTime = performance.now() / 1000;
         gameLoop();
-        bgm.play();
     })();
 </script>
 </body>
