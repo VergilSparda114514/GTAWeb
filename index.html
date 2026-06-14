@@ -279,11 +279,11 @@
 
         // Sound Effects
 
-        const shoot = new Wad({ source: 'shoot.mp3' });
-        const policeShoot = new Wad({ source: 'policeShoot.mp3' });
-        const explode = new Wad({ source: 'explode.mp3' });
-        const crush = new Wad({ source: 'crush.mp3' });
-        const bgm = new Wad({ source: 'bgm.mp3' });
+        const shoot = new Wad({ source: 'sfx/shoot.mp3' });
+        const policeShoot = new Wad({ source: 'sfx/policeShoot.mp3' });
+        const explode = new Wad({ source: 'sfx/explode.mp3' });
+        const crush = new Wad({ source: 'sfx/crush.mp3' });
+        const bgm = new Wad({ source: 'sfx/bgm.mp3' });
         
         // Entities
         let policeCars = [];
@@ -337,7 +337,6 @@
         
         function addExplosion(x, y) {
             explosions.push({ x: x, y: y, timer: 0.5 });
-            explode.setVolume(0.5);
             explode.play();
 
             for (let i = 0; i < pedestrians.length; i++) {
@@ -620,7 +619,6 @@
                 for (let b of buildings) resolveCircleRect(ped.x, ped.y, ped.radius, b, ped);
                 if (Math.hypot(player.x - ped.x, player.y - ped.y) < player.radius + ped.radius) {
                     destroyPedestrian(ped, i);
-                    crush.setVolume(0.25);
                     crush.play();
                     damagePlayer(-5);
                     i--;
