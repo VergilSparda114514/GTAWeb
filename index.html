@@ -532,7 +532,7 @@
                 // RAMMING: explode police and damage player
                 if (distToPlayer < player.radius + p.radius) {
                     destroyPoliceCar(p, i);
-                    damagePlayer(18);
+                    damagePlayer(15);
                     let anglePush = Math.atan2(player.y - p.y, player.x - p.x);
                     player.x += Math.cos(anglePush) * 24;
                     player.y += Math.sin(anglePush) * 24;
@@ -564,7 +564,7 @@
                         dirX /= len; dirY /= len;
                         bullets.push({
                             x: p.x + dirX*14, y: p.y + dirY*14, vx: dirX * 420, vy: dirY * 420,
-                            radius: 5, owner: "police", damage: 12, life: 2.0
+                            radius: 5, owner: "police", damage: 20, life: 2.0
                         });
                         policeShoot.play();
                     }
@@ -611,7 +611,7 @@
                     addBlood(ped.x, ped.y);
                     pedestrians.splice(i,1);
                     addScore(5, true);
-                    damagePlayer(-6);
+                    damagePlayer(-5);
                     i--;
                 }
             }
